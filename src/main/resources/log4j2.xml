@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Properties>
+        <Property name="date">yyyy-dd-MM</Property>
+        <Property name="module.name">project-demo-20210301</Property>
+        <Property name="log.pattern">%d{${date} HH:mm:ss.SSS} ${module.name} [%t] %-5level %logger{36} - %msg%n</Property>
+        <Property name="log.fileName">logs/logger.log</Property>
+        <Property name="log.filePattern">logs/logger-${date}_%i.log.gz</Property>
+    </Properties>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${log.pattern}"/>
+        </Console>
+        <RollingFile name="outToFile" fileName="${log.fileName}" filePattern="${log.filePattern}"
+                     bufferedIO="true">
+            <!--设置日志输出格式-->
+            <PatternLayout pattern="${log.pattern}"/>
+            <Policies>
+                <!--设置日志文件大小为1MB-->
+                <SizeBasedTriggeringPolicy size="1MB"/>
+            </Policies>
+            <!--设置默认保留最近100份日志文件，不设置的话默认为8份-->
+            <DefaultRolloverStrategy max="100"/>
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+        <Root level="trace">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="outToFile"/>
+        </Root>
+    </Loggers>
+</Configuration>
