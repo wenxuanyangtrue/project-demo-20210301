@@ -1,4 +1,4 @@
 Git is a distributed version control system.
 Git is free software distributed under the GPL.
 大家好！
-create new branch quick and *!
+create new branch quick and smple!
