@@ -1,5 +1,7 @@
-import org.apache.logging.log4j.LogManager;
+
 import org.junit.Test;
+import top.xsword.annotation.DBSelect;
+import top.xsword.annotation.NotNull;
 import top.xsword.bean.Student;
 import top.xsword.exception.UserFindException;
 import top.xsword.service.UserService;
@@ -9,13 +11,102 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Arrays;
+import java.util.*;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
 public class Test01 {
+
+    @Test
+    public void Test11(){
+        Map<String,String> testDaoSql = getTestDaoSql();
+        String s = testDaoSql.get("TestDao.insert");
+        System.out.println(s);
+    }
+
+
+    public Map getTestDaoSql(){
+        Map<String,String> sqlMap = new HashMap<>();
+        Class<TestDao> testDaoClass = TestDao.class;
+        Method[] methods = testDaoClass.getMethods();
+        for (Method method : methods) {
+            if (method.isAnnotationPresent(DBSelect.class)) {
+                DBSelect annotation = method.getAnnotation(DBSelect.class);
+                String value = annotation.value();
+                StringBuilder stringBuilder = new StringBuilder(value);
+                String[] params = annotation.params();
+                for (int i = 0; i < charCount(value); i++) {
+                    int i1 = stringBuilder.indexOf("?");
+                    stringBuilder.deleteCharAt(i1);
+                    stringBuilder.insert(i1,params[i]);
+                }
+
+                String packageName = testDaoClass.getPackageName();
+
+                String key;
+                if(packageName == null || packageName == ""){
+                    key = testDaoClass.getName() + '.' + method.getName();
+                }else{
+                    key = packageName + '.' + testDaoClass.getName() + '.' + method.getName();
+                }
+                sqlMap.put(key,stringBuilder.toString());
+            }
+        }
+        return sqlMap;
+    }
+
+    public void showMap(Map map){
+        Set<Map.Entry<String, String>> entries = map.entrySet();
+        Iterator<Map.Entry<String, String>> iterator = entries.iterator();
+        while(iterator.hasNext()){
+            String key = iterator.next().getKey();
+            System.out.println(key);
+            System.out.println(map.get(key));
+        }
+    }
+
+    public int charCount(String str){
+        int count = 0;
+        for (int i = 0; i < str.length(); i++) {
+            if(str.charAt(i) == '?'){
+                count++;
+            }
+        }
+        return count;
+    }
+
+    @Test
+    public void test10() throws NoSuchFieldException, IllegalAccessException {
+        TestDao testDao = new TestDao();
+        testDao.setName("ywx");
+        Class<TestDao> testDaoClass = TestDao.class;
+        Field name = testDaoClass.getDeclaredField("name");
+        boolean annotationPresent = name.isAnnotationPresent(NotNull.class);
+        if(annotationPresent){
+            Object o = name.get(testDao);
+            if(o == null){
+                throw new NullPointerException("\n"+testDaoClass.toString()+"\n"+name+"为空");
+            }else{
+                System.out.println(o);
+            }
+        }
+    }
+
+    @Test
+    public void test09() throws NoSuchMethodException {
+        Class<TestDao> testDaoClass = TestDao.class;
+        Method DBSelect = testDaoClass.getMethod("select");
+        DBSelect annotation = DBSelect.getAnnotation(DBSelect.class);
+        String value = annotation.value();
+        String[] params = annotation.params();
+        System.out.printf("value = {%s}\n",value);
+        System.out.printf("params = %s\n",Arrays.toString(params));
+        String SQL = value.replace("?", params[0]);
+        System.out.printf("sql = {%s}\n",SQL);
+    }
+
     @Test
     public void test08(){
         Class<Student> studentClass = Student.class;
